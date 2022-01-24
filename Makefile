@@ -258,10 +258,16 @@ $(addsuffix _prereq_tests, ${ALL_LIBS}): %:
 .PHONY: all_libs all_tests
 
 # 'make all_libs' builds all libraries
-all_libs: ${ALL_LIBS}
+all_libs: ${LIBDIR_OUT}/lib/libshum.so ${ALL_LIBS}
 
 # 'make all_tests' builds all tests (but does not run them)
 all_tests: $(addsuffix _tests, ${ALL_LIBS})
+
+libshum.so: ${ALL_LIBS}
+	${FC} ${FCFLAGS_SHARED} ${FCFLAGS} ${FCFLAGS_PIC} -o $@ -Wl,--whole-archive $(wildcard ${DIR_ROOT}/*/src/*_PIC.o) -Wl,--no-whole-archive
+
+${LIBDIR_OUT}/lib/libshum.so: libshum.so
+	cp -p $^ $@
 
 # FRUIT testing control
 #--------------------------------------------------------------------------------
@@ -302,6 +308,7 @@ clean-temp:
 	${MAKE} -C ${DIR_ROOT}/${FRUIT} -f Makefile-driver clean
 
 clean-build:
+	rm -f libshum.so
 	rm -rf ${OUTDIRS} ${OUTDIR_TESTS}
 	rm -rf ${LIBDIR_OUT}
 	rmdir ${LIBDIR_ROOT} || :
